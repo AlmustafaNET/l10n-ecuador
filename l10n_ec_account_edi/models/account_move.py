@@ -24,8 +24,8 @@ class AccountMove(models.Model):
         string="Credit days", compute="_compute_l10n_ec_credit_days", store=True
     )
     l10n_latam_internal_type = fields.Selection(
-        related="l10n_latam_document_type_id.internal_type",
-        string="L10n Latam Internal Type",
+        related="l10n_latam_document_type_id.internal_type",    
+        string="L10n Latam Internal Type",        
         store=True,
     )
     l10n_ec_electronic_authorization = fields.Char(
@@ -59,6 +59,19 @@ class AccountMove(models.Model):
     l10n_ec_additional_information_move_ids = fields.One2many(
         "l10n.ec.additional.information", "move_id", string="Additional Information"
     )
+    
+    # Reemplazo para que se force a que se muestre el campo de tipo de documento (l10n_latam_internal_type)
+    # No debería ser necesario, pero al parecer el campo no se actualiza correctamente cuando se genera una factura desde el modulo Compras
+    @api.depends('l10n_latam_available_document_type_ids')
+    def _compute_l10n_latam_document_type(self):
+        super()._compute_l10n_latam_document_type()
+        for move in self:
+            if move.l10n_latam_document_type_id:
+                move.l10n_latam_internal_type = move.l10n_latam_document_type_id.internal_type
+            else:               
+                move.l10n_latam_internal_type = "" 
+    #########################################################
+    
 
     @api.depends("company_id", "invoice_filter_type_domain")
     def _compute_suitable_journal_ids(self):
