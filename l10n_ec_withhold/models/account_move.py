@@ -414,6 +414,7 @@ class AccountMove(models.Model):
             else:
                 raise UserError(_("Please configure a journal for sale withhold"))
 
+    # OJO! NO soporta una Retencion de varias facturas
     # Create Withhold
     @api.model
     def create_withhold(self, vals, post=True):
@@ -441,8 +442,8 @@ class AccountMove(models.Model):
         w_lines = []
         account_lines = []
         total_withhold = vals["total_withhold"]
-
-        tax_tags_base = []
+        
+        referencia = "RET " + str(vals["number"])
 
         for line in vals["lines"]:
             line["l10n_ec_invoice_withhold_id"] = invoice_id
@@ -451,15 +452,64 @@ class AccountMove(models.Model):
 
             # Linea contable de la retencion.
             ret_tax = self.env["account.tax"].browse(line["tax_withhold_id"])
-            tax_tags_base += ret_tax.invoice_repartition_line_ids.filtered(
+            repartition_base_lines = ret_tax.invoice_repartition_line_ids.filtered(
                 lambda x: x.repartition_type == "base"
-            ).tag_ids.ids
-            repartition_lines = ret_tax.invoice_repartition_line_ids.filtered(
+            )
+            repartition_tax_lines = ret_tax.invoice_repartition_line_ids.filtered(
                 lambda x: x.repartition_type == "tax"
             )
-            for repartition_line in repartition_lines:
-                account_id = repartition_line.account_id.id
-                amount = line["withhold_amount"] * repartition_line.factor
+            # Crear movimientos contables solo cuando se tenga tag_ids, es decir, pertenezca a algun reporte
+            for repartition_base_line in repartition_base_lines:
+                if not repartition_base_line.tag_ids:
+                    continue
+                                
+                account_id = repartition_base_line.account_id.id
+                if not account_id:
+                    account_id = repartition_base_line.tax_id.invoice_repartition_line_ids.account_id.id
+                
+                amount = line["base_amount"] * repartition_base_line.factor
+                
+                debit = 0
+                credit = 0
+                
+                if vals["tipo"] == "purchase":
+                    debit = amount
+                else:
+                    credit = amount
+                
+                # Crear linea y su reverso inmediato, no hace nada más que estar presente para los reportes
+                account_lines.append(
+                    (
+                        0,
+                        0,
+                        {
+                            "partner_id": invoice.partner_id.id,
+                            "account_id": account_id,
+                            "name": referencia,
+                            "debit": debit,
+                            "credit": credit,
+                            "tax_tag_ids": [(6, 0, repartition_base_line.tag_ids.ids)],
+                        },
+                    )
+                )
+                account_lines.append(
+                    (
+                        0,
+                        0,
+                        {
+                            "partner_id": invoice.partner_id.id,
+                            "account_id": account_id,
+                            "name": "Reverso de " + referencia,
+                            "debit": credit,
+                            "credit": debit,
+                        },
+                    )
+                )
+                
+            # Crear movimientos contables de las lineas de retención
+            for repartition_tax_line in repartition_tax_lines:
+                account_id = repartition_tax_line.account_id.id
+                amount = line["withhold_amount"] * repartition_tax_line.factor
                 debit = 0
                 credit = 0
                 if vals["tipo"] == "sale":
@@ -474,15 +524,15 @@ class AccountMove(models.Model):
                         {
                             "partner_id": invoice.partner_id.id,
                             "account_id": account_id,
-                            "name": "RET " + str(vals["number"]),
+                            "name": referencia,
                             "debit": debit,
                             "credit": credit,
-                            "tax_tag_ids": [(6, 0, repartition_line.tag_ids.ids)],
+                            "tax_tag_ids": [(6, 0, repartition_tax_line.tag_ids.ids)],
                         },
                     )
                 )
 
-        # Linea contable de la base
+        # Linea contable del total retenido
         if vals["tipo"] == "sale":
             # Linea contable de la retencion. Quito de las cuentas por cobrar
             account_id = invoice.partner_id.property_account_receivable_id.id
@@ -507,6 +557,7 @@ class AccountMove(models.Model):
             credit = 0.0
             debit = total_withhold
 
+        # Linea contable del total de la retención, que se mueve desde CuentasXCobrar o Pagar
         account_lines.append(
             (
                 0,
@@ -514,10 +565,9 @@ class AccountMove(models.Model):
                 {
                     "partner_id": invoice.partner_id.id,
                     "account_id": account_id,
-                    "name": "RET " + str(vals["number"]),
+                    "name": referencia,
                     "debit": debit,
-                    "credit": credit,
-                    "tax_tag_ids": [(6, 0, tax_tags_base)],
+                    "credit": credit,                    
                 },
             )
         )
