@@ -1,0 +1,119 @@
+<odoo>
+
+	
+	<record model="ir.ui.view" id="wizard_importXML">
+		<field name="name">wizard_importXML</field>
+		<field name="model">l10n_ec_account_edi.wimpxml</field>
+		<field name="arch" type="xml">
+			<form string="Importar XML" write="true" create="false" edit="true">
+				<header>
+					<div invisible="context.get('modo') != 'init'">
+						<p>Seleccionar el archivo XML que contiene el documento electr&#243;nico a Importar</p>
+					</div>
+				</header>
+				<sheet>
+					<group name="g_init" invisible="context.get('modo') != 'init'">
+						<field name="archivo" widget="One2many_binary"  />
+					</group>	
+
+					<group> 
+						<group name="left">
+							<field name="fecha" readonly="1" invisible="context.get('modo','') not in ['f', 'nc']" />
+							<field name="numero" readonly="1" invisible="context.get('modo','') not in ['f', 'nc']" />
+							<field name="proveedor" readonly="1" invisible="context.get('modo','') != 'f'" />
+							<field name="tipo" invisible="context.get('modo','') not in ['f', 'nc']" />
+							<field name="l10n_ec_tax_support" invisible="context.get('modo','') not in ['f', 'nc']"/>
+						</group>
+						<group name="rigth">
+							<field name="totalSinImpuestos" readonly="1" invisible="context.get('modo','') != 'f'" />
+							<field name="descuento" readonly="1" invisible="context.get('modo','') != 'f'" />
+							<field name="propina" readonly="1" invisible="propina==0" />
+							<field name="total" readonly="1" invisible="context.get('modo','') not in ['f', 'nc']" />
+							<field name="publicar" invisible="context.get('modo','') != 'f'" />							
+							<field name="pagar" invisible="not publicar" />
+							<field name="fpago" invisible="not publicar or not pagar" domain="[('type', 'in', ('bank', 'cash'))]" />
+							<field name="ret_asumida" invisible="not publicar or not pagar" />
+						</group>                       
+					</group>	
+					<notebook invisible="context.get('modo') != 'f'">						
+						<page name="p_consolidado" string="Consolidado" invisible="tipo!='consolidado'">
+							<div class="oe_inline">
+								<field name="lines_x_consolidado">                                    
+									<tree create="true" delete="true" editable="bottom">                                        
+										<field name="producto_id" />
+										<field name="subtotal" />
+										<field name="tax_ids" widget="many2many_tags" width="0.5" domain="[('type_tax_use', '=?', 'purchase')]" options="{'no_create': True}" />
+										<field name="valor" />
+									</tree>
+								</field>
+							</div>
+						</page>
+						<page name="p_producto" string="Por Producto" invisible="tipo!='x_producto'">
+							<div class="oe_inline">
+								<field name="lines_x_producto" invisible="context.get('modo','') != 'f'">                                    
+									<tree delete="false" create="false" editable="bottom">   
+										<field name="producto_id" />
+										<field name="tax_ids" widget="many2many_tags" width="0.5" domain="[('type_tax_use', '=?', 'purchase')]" options="{'no_create': True}" />
+										<field name="seleccionado" />
+										<field name="codigo" readonly="1" />
+										<field name="descripcion" readonly="1" />
+										<field name="cantidad" readonly="1" />
+										<field name="precio_unitario" readonly="1" />
+										<field name="descuento" readonly="1" />
+										<field name="precio_sin_impuesto" readonly="1" />
+										<field name="v_imp" readonly="1" />                      
+									</tree>
+								</field>
+								<group>
+									<field name="suma_sub" readonly="1" />
+									<field name="suma_imp" readonly="1" />
+								</group>
+							</div>
+						</page>
+						<page name="p_impuestos" string="Impuestos">
+							<div class="oe_inline">
+								<field name="impuestos">                                    
+									<tree create="false" delete="false" editable="bottom">                                        
+										<field name="codigo" readonly="1" />
+										<field name="codigoPorcentaje" readonly="1" />
+										<field name="baseImponible" readonly="1" sum="Base Imp." />                                    
+										<field name="valor" readonly="1" sum="Impuestos" />                               
+									</tree>
+								</field>
+							</div>
+						</page>
+						<page name="p_adicional" string="Info Adicional">
+							<div class="oe_inline">
+								<field name="lines_info_adicional">                                    
+									<tree create="false" delete="false" editable="bottom">                                        
+										<field name="nombre" readonly="1" />
+										<field name="valor" readonly="1" />
+									</tree>
+								</field>
+							</div>
+						</page>
+					</notebook>
+						
+					<footer>
+						<button special="cancel" string="Cancel" />
+						<button name="action_procesar_archivo" type="object" string="IMPORTAR" class="oe_highlight" invisible="context.get('modo') != 'init'" />
+						<button name="action_crear_factura" type="object" string="Crear Factura" class="oe_highlight" invisible="context.get('modo','') != 'f'" />
+					</footer>
+				</sheet>
+			</form>
+		</field>
+	</record>
+	
+	
+    <record id="launch_wizard_importar_xml" model="ir.actions.act_window">
+        <field name="name">Importar XML</field>
+        <field name="res_model">l10n_ec_account_edi.wimpxml</field>
+        <field name="context">{'edit': True, 'modo': 'init'}</field>		
+		<field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+	
+	<menuitem id="menu_importarxml" name="Importar XML" parent="l10n_ec.sri_menu" sequence="10" action="launch_wizard_importar_xml" />
+	        
+</odoo>

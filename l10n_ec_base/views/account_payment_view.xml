@@ -14,4 +14,8 @@
             </field>
         </field>
     </record>
+
+    <!-- Sobreescribo -->
+    <menuitem id="l10n_ec.menu_action_account_l10n_ec_sri_payment" action="l10n_ec.action_account_l10n_ec_sri_payment_tree"
+              groups="account.group_account_manager" parent="l10n_ec.sri_menu_config" sequence="3"/>
 </odoo>

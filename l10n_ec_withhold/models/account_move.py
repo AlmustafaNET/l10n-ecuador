@@ -3,7 +3,9 @@ import logging
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
+from datetime import datetime
 from .data import TAX_SUPPORT
 
 _logger = logging.getLogger(__name__)
@@ -388,13 +390,21 @@ class AccountMove(models.Model):
                 )
 
         # Validate date of withhold
-        if vals.get("date") and vals.get("date") < invoice.invoice_date:
-            raise UserError(
-                _(
-                    f"Withhold date: {vals['date']} "
-                    f"should be equal or major that invoice date: {invoice.invoice_date}"
+        if vals.get("date"):
+            fecha = vals.get("date")
+            if isinstance(fecha, str):
+                fecha = datetime.strptime(vals.get("date"), DEFAULT_SERVER_DATETIME_FORMAT)
+                
+            if isinstance(fecha, datetime):
+                fecha = fecha.date()
+            
+            if fecha < invoice.invoice_date:        
+                raise UserError(
+                    _(
+                        f"Withhold date: {fecha} "
+                        f"should be equal or major that invoice date: {invoice.invoice_date}"
+                    )
                 )
-            )
 
         # Validate lines
         if not vals.get("lines"):
@@ -424,7 +434,7 @@ class AccountMove(models.Model):
         if not invoice_id:
             invoice = self.search(
                 [
-                    ("name", "like", "%" + vals["invoice_number"]),
+                    ("l10n_latam_document_number", "=", vals["invoice_number"]),
                     ("move_type", "=", "out_invoice"),
                 ],
                 limit=1,

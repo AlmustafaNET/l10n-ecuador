@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">.
+        <record id="header_csv_file_sri_edis" model="ir.config_parameter">
+            <field name="key">header_csv_file_sri_edis</field>
+            <field name="value">COMPROBANTE	SERIE_COMPROBANTE	RUC_EMISOR	RAZON_SOCIAL_EMISOR	FECHA_EMISION	FECHA_AUTORIZACION	TIPO_EMISION	NUMERO_DOCUMENTO_MODIFICADO	IDENTIFICACION_RECEPTOR	CLAVE_ACCESO	NUMERO_AUTORIZACION	IMPORTE_TOTAL</field>
+        </record>
+
+        <record id="header_csv_file_banco_pichincha" model="ir.config_parameter">
+            <field name="key">header_csv_file_banco_pichincha</field>
+            <field name="value">COMPROBANTE	SERIE_COMPROBANTE	RUC_EMISOR	FECHA_EMISION	FECHA_AUTORIZACION	NUMERO_DOCUMENTO_MODIFICADO	IMPORTE_TOTAL</field>
+        </record>
+    </data>
+
+</odoo>

@@ -460,3 +460,33 @@ class AccountMove(models.Model):
                     )
 
         return super().button_cancel_posted_moves()
+
+    def action_show_edi_document(self):
+        self.ensure_one()
+        
+        if not self.edi_document_ids:
+            raise UserError(_("There is no EDI document to show."))
+        
+        if len(self.edi_document_ids) > 1:
+            # Open tree view
+            vista = self.env.ref("l10n_ec_account_edi.account_edi_document_view_tree").id
+            return {
+                "name": _("EDI Documents"),
+                "type": "ir.actions.act_window",
+                "view_mode": "tree",
+                "res_model": "account.edi.document",
+                "views": [(vista, "tree")],
+                "domain": [("id", "in", self.edi_document_ids.ids)],
+            }
+        else:
+            # Open form view
+            vista = self.env.ref("l10n_ec_account_edi.account_edi_document_view_form").id
+            return {
+                "name": _("EDI Documents"),
+                "type": "ir.actions.act_window",
+                "view_mode": "form",
+                "res_model": "account.edi.document",
+                "views": [(vista, "form")],
+                "res_id": self.edi_document_ids.id,
+            }
+        

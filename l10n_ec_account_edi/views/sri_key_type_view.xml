@@ -113,7 +113,7 @@
         id="sri_key_type_menu"
         name="Electronic Signature Certs"
         sequence="1"
-        parent="l10n_ec.sri_menu"
+        parent="l10n_ec.sri_menu_config"
         action="sri_key_type_action"
         groups="base.group_system"
     />

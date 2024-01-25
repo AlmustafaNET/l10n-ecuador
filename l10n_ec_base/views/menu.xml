@@ -2,9 +2,16 @@
 <odoo>
     <menuitem
         id="l10n_ec.sri_menu"
-        name="Ecuadorian SRI"
-        parent="account.menu_finance"
-        sequence="9"
+        name="SRI Ecuatoriano"
+        parent="account.menu_finance_entries"
+        sequence="100"
+    />
+
+    <menuitem
+        id="l10n_ec.sri_menu_config"
+        name="SRI Ecuatoriano"
+        parent="account.menu_finance_configuration"
+        sequence="100"
     />
 
 </odoo>
