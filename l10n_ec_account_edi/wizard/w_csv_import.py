@@ -1,14 +1,10 @@
 # -*- encoding: utf-8 -*-
 import codecs
-import xmltodict #sudo apt-get install python-xmltodict
-import json
 
 import datetime
-from datetime import timedelta
 
-from odoo import models, fields, api
+from odoo import models, fields, tools
 from odoo.exceptions import ValidationError, UserError
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from zeep import Client, Settings
 import logging
 
@@ -197,65 +193,68 @@ class DetalleCSVLine(models.TransientModel):
         return False
 
     
-    def action_autorizacion(self):
+    def get_xml_sri(self):
         self.ensure_one()
 
-        ambiente_id = self.env.company.ambiente_id
-        claveacceso = self.clave
-
-        try:
-            settings = Settings(strict=False, xml_huge_tree=True)        
-            client = Client(ambiente_id.autorizacioncomprobantes, settings=settings)
-            with client.settings(raw_response=False):      
-                response = client.service.autorizacionComprobante(claveacceso)
-                # El SRI retorna numeroComprobantes 0 cuando tiene errores
-                # en su sistema y no se almacena el comprobante correctamente.
-                if not response['numeroComprobantes'] or response['numeroComprobantes'] == '0':
-                    raise UserError(f"No se encontró un documento con esta clave de acceso:\n{claveacceso}\n{self.numero}")
-                else:
-                    autorizaciones = response['autorizaciones']['autorizacion'][0]
-                    
-        except Exception as ex:
-            raise ValidationError("Error: " + str(ex))
+        company = self.env.company
+        auth_client = self.env['account.edi.format']._l10n_ec_get_edi_ws_client(
+            company.l10n_ec_type_environment, "authorization"
+        )
         
-        if autorizaciones['estado'] != 'AUTORIZADO':
-            raise ValidationError(f"El documento no se encuentra AUTORIZADO.\Estado actual: {autorizaciones['estado']}")
+        claveacceso = self.clave
+        
+        try:
+            response = auth_client.service.autorizacionComprobante(
+                claveAccesoComprobante=claveacceso
+            )
+        except Exception as e:
+            msg = "Error al obtener el XML del SRI: %s" % tools.ustr(e)
+            _logger.warning(msg)
+            raise ValidationError(msg)
+        
+        autorizacion = response.autorizaciones.autorizacion[0]            
+           
+        if autorizacion.estado.upper() != 'AUTORIZADO':   
+            msg = f"El documento no se encuentra AUTORIZADO.\nEstado actual: {autorizacion.estado}"        
+            if autorizacion.mensajes and autorizacion.mensajes.mensaje:
+                msg += f"\n\n{autorizacion.mensajes.mensaje[0].mensaje}:"
+                msg += f"\n{autorizacion.mensajes.mensaje[0].informacionAdicional}"
+            raise ValidationError(msg)
 
-        comprobante = autorizaciones['comprobante']
+        comprobante = autorizacion.comprobante
         comprobante = comprobante.encode()
         
         return codecs.encode(comprobante, 'base64')
-
-
+    
     def check_f_previa(self):
         for s in self:
-            res = s.action_autorizacion()
+            res = s.get_xml_sri()
             if res:                
-                o_xml = self.env['l10n_ec_account_edi.wizard.impxml']
+                o_xml = self.env['l10n_ec_account_edi.wimpxml']
                 o = o_xml.sudo().create({
                     'archivo': res
                 })
 
-                res = o.procesar_archivo()      
+                res = o.action_procesar_archivo()      
                 if isinstance(res, dict):          
                     w_id = res.get('res_id', False)
                     if w_id:
-                        w = self.env['l10n_ec_account_edi.wizard.impxml'].browse(w_id)
-                        if len(w.lineas2) > 0:
+                        w = self.env['l10n_ec_account_edi.wimpxml'].browse(w_id)
+                        if len(w.lines_x_consolidado) > 0:
                             s.estado = 'F.PREVIA'
 
     
-    def procesar(self, automaticamente=False):
+    def action_procesar(self, automaticamente=False):
         f_ids = []
 
         for s in self:
             if s.estado == 'YA EXISTE':
                 raise ValidationError(u"El Documento no puede procesarse porque ya existe!")
 
-            res = s.action_autorizacion()
+            res = s.get_xml_sri()
             if res:
                 s.estado = u"PROCESANDO"
-                o_xml = self.env['l10n_ec_account_edi.wizard.impxml']
+                o_xml = self.env['l10n_ec_account_edi.wimpxml']
                 o = o_xml.sudo().create({
                     'archivo': res
                 })
@@ -265,7 +264,7 @@ class DetalleCSVLine(models.TransientModel):
                     if f_id:
                         f_ids.append(f_id)
                 else:
-                    return o.procesar_archivo()
+                    return o.action_procesar_archivo()
         
         #vista = self.env.ref('account.view_in_invoice_tree')
 

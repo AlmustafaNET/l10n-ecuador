@@ -34,7 +34,7 @@
 								<field name="numero" readonly="1" />
 								<field name="total" readonly="1" />									
 								<field name="estado" readonly="1" />
-								<button name="procesar" type="object" help="Descargar documento y procesarlo" icon="fa-gear" >										
+								<button name="action_procesar" type="object" help="Descargar documento y procesarlo" icon="fa-gear" >										
 								</button>
 							</tree>
 						</field>

@@ -4,14 +4,10 @@ import xmltodict #sudo apt-get install python-xmltodict
 import json
 
 import datetime
-from datetime import timedelta
-
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.addons.l10n_ec_withhold.models.data import TAX_SUPPORT
 
-from zeep import Client, Settings
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -598,7 +594,7 @@ class ImportarXML(models.TransientModel):
 
     def procesar_automaticamente(self):
         self.ensure_one()
-        res = self.procesar_archivo()   
+        res = self.action_procesar_archivo()   
         if isinstance(res, dict):            
             w_id =  res.get('res_id', False)
             if w_id:
