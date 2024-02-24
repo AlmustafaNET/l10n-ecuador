@@ -21,7 +21,7 @@
 							<field name="fecha" readonly="1" invisible="context.get('modo','') not in ['f', 'nc']" />
 							<field name="numero" readonly="1" invisible="context.get('modo','') not in ['f', 'nc']" />
 							<field name="proveedor" readonly="1" invisible="context.get('modo','') != 'f'" />
-							<field name="tipo" invisible="context.get('modo','') not in ['f', 'nc']" />
+							<field name="tipo" widget="radio" invisible="context.get('modo','') not in ['f', 'nc']" />
 							<field name="l10n_ec_tax_support" invisible="context.get('modo','') not in ['f', 'nc']"/>
 						</group>
 						<group name="rigth">
@@ -40,7 +40,8 @@
 							<div class="oe_inline">
 								<field name="lines_x_consolidado">                                    
 									<tree create="true" delete="true" editable="bottom">                                        
-										<field name="producto_id" />
+										<field name="producto_id" options="{'no_create': True, 'no_open': True}" />
+										<field name="account_id" options="{'no_create': True, 'no_open': True}" />
 										<field name="subtotal" />
 										<field name="tax_ids" widget="many2many_tags" width="0.5" domain="[('type_tax_use', '=?', 'purchase')]" options="{'no_create': True}" />
 										<field name="valor" />
@@ -52,7 +53,7 @@
 							<div class="oe_inline">
 								<field name="lines_x_producto" invisible="context.get('modo','') != 'f'">                                    
 									<tree delete="false" create="false" editable="bottom">   
-										<field name="producto_id" />
+										<field name="producto_id" options="{'no_create': True, 'no_open': True}"/>
 										<field name="tax_ids" widget="many2many_tags" width="0.5" domain="[('type_tax_use', '=?', 'purchase')]" options="{'no_create': True}" />
 										<field name="seleccionado" />
 										<field name="codigo" readonly="1" />

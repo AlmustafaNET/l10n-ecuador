@@ -12,8 +12,11 @@
         "data/l10n_latam_identification_type_data.xml",
         "data/res_partner_data.xml",
         "data/res.bank.csv",
+        "data/productos.xml",
+        'data/l10n_ec.sri.payment.csv',
         "wizard/account_payment_register_views.xml",
         "views/menu.xml",
+        "views/account_group_menu.xml",
         "views/account_tax_view.xml",
         "views/account_journal_view.xml",
         "views/account_payment_view.xml",
@@ -23,5 +26,5 @@
     ],
     "installable": True,
     "auto_install": False,
-    "post_init_hook": "_l10n_ec_base_post_init",
+    "post_init_hook": "_l10n_ec_base_post_init",   
 }

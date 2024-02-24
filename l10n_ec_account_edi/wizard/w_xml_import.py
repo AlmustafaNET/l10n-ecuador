@@ -43,11 +43,11 @@ class ImportarXML(models.TransientModel):
 
     @api.model
     def _get_default_publicar_auto(self):        
-        return self.env['ir.config_parameter'].sudo().get_param('l10n_ec_account_edi.publicar_automatico')
+        return bool(self.env["ir.config_parameter"].sudo().get_param("l10n_ec_sri_auto_post", True))
 
     @api.model
     def _get_default_pagar_auto(self):
-        return self.env['ir.config_parameter'].sudo().get_param('l10n_ec_account_edi.pagar_automatico')
+        return bool(self.env["ir.config_parameter"].sudo().get_param("l10n_ec_sri_auto_payment", True))
 
     publicar = fields.Boolean("Publicar automáticamente", default=_get_default_publicar_auto)
     pagar = fields.Boolean("Pagar automáticamente", default=_get_default_pagar_auto)      
@@ -160,35 +160,38 @@ class ImportarXML(models.TransientModel):
     def obtener_anteriores(self, proveedor_id):
         self.ensure_one()
 
-        moves = self.env['account.move'].search([('partner_id', '=', proveedor_id), ('move_type','=', 'in_invoice'), ('state', '=', 'posted')], limit=10, order='invoice_date desc')
+        move = self.env['account.move'].search([('partner_id', '=', proveedor_id), ('move_type','=', 'in_invoice'), ('state', '=', 'posted')], limit=1, order='invoice_date desc')
         formas_pagos = {}
         fp_id = 0
         max_uso_journal = 0
         impuestos = {}
         tax_suport = False
+        
+        if not move:
+            _logger.info(u"ERROR: No se encontró ninguna factura previa para este proveedor.")
+            return fp_id, impuestos, tax_suport
 
-        # Maximo las ultimas 10 facturas
-        for move in moves:
-            tax_suport = move.l10n_ec_tax_support
-            # Pagos
-            reconciled_lines, _ = move._get_reconciled_invoices_partials()
-            for _, _, counterpart_line in reconciled_lines:
-                jounral_id = counterpart_line.journal_id.id
-                if jounral_id not in formas_pagos:
-                    formas_pagos[jounral_id] = 0
-                
-                formas_pagos[jounral_id] += 1
-
-                if formas_pagos[jounral_id] > max_uso_journal:
-                    max_uso_journal = formas_pagos[jounral_id]
-                    fp_id = jounral_id
+        # Última factura
+        tax_suport = move.l10n_ec_tax_support
+        # Pagos
+        reconciled_lines, _ = move._get_reconciled_invoices_partials()
+        for _, _, counterpart_line in reconciled_lines:
+            jounral_id = counterpart_line.journal_id.id
+            if jounral_id not in formas_pagos:
+                formas_pagos[jounral_id] = 0
             
+            formas_pagos[jounral_id] += 1
 
-            # Productos
-            for line in move.invoice_line_ids:
-                for tax in line.tax_ids:
-                    if tax not in impuestos:
-                        impuestos[tax] = (line.product_id.id, line.tax_ids.filtered(lambda r: r.id != tax.id).mapped('id'))
+            if formas_pagos[jounral_id] > max_uso_journal:
+                max_uso_journal = formas_pagos[jounral_id]
+                fp_id = jounral_id
+        
+
+        # Productos
+        for line in move.invoice_line_ids:
+            for tax in line.tax_ids:
+                if tax not in impuestos:
+                    impuestos[tax] = (line.product_id.id, line.account_id.id, line.tax_ids.filtered(lambda r: r.id != tax.id).mapped('id'))
 
         
         return fp_id, impuestos, tax_suport
@@ -318,9 +321,10 @@ class ImportarXML(models.TransientModel):
                 if t_previo:
                     t_previo = t_previo[0]
                     taxs = [t_previo.id]
-                    taxs += impuestos_previos[t_previo][1]
+                    taxs += impuestos_previos[t_previo][2]
                     lines_x_consolidado += [[0,0, {
                         'producto_id' : impuestos_previos[t_previo][0],
+                        'account_id' : impuestos_previos[t_previo][1],
                         'tax_ids' : taxs,                        
                         'subtotal': float(imp['baseImponible']),
                         'valor': float(imp['valor']),
@@ -517,6 +521,7 @@ class ImportarXML(models.TransientModel):
                 lineas.append((0,0,{
                     'name': l.producto_id.name,
                     'product_id': l.producto_id.id,    
+                    'account_id': l.account_id.id,
                     'product_uom_id': l.producto_id.uom_id.id,                 
                     'tax_ids': [(6, 0, taxs.ids)], 
                     'price_unit': l.subtotal,
@@ -592,16 +597,16 @@ class ImportarXML(models.TransientModel):
 
         return True    
 
-    def procesar_automaticamente(self):
+    def procesar_automaticamente(self, buff=False):
         self.ensure_one()
-        res = self.action_procesar_archivo()   
+        res = self.action_procesar_archivo(buff)   
         if isinstance(res, dict):            
             w_id =  res.get('res_id', False)
             if w_id:
                 w = self.env['l10n_ec_account_edi.wimpxml'].browse(w_id)
                 if len(w.lines_x_consolidado) > 0:
                     r_ctx = res.get('context', {})
-                    res = self.with_context({'factura': r_ctx.get('factura', False)}).crear_factura()
+                    res = self.with_context({'factura': r_ctx.get('factura', False)}).action_crear_factura()
                     return res.get('res_id', False) 
     
         return False
@@ -665,10 +670,11 @@ class ImportarXML(models.TransientModel):
         else:
             raise ValidationError(u"ERROR: SOLO SE ACEPTAN FACTURAS O RETENCIONES.\nNO: '%s'" % comprobante.keys())
     
-    def action_procesar_archivo(self):   
+    def action_procesar_archivo(self, buff=False):
         for s in self:
-            if s.archivo:
-                buff = codecs.decode(s.archivo, 'base64')
+            if buff or s.archivo:
+                if not buff:
+                    buff = codecs.decode(s.archivo, 'base64')
                 ctx = self.procesar_xml(buff)
                 s.archivo = False #No guardar el archivo en BDD
                 
@@ -727,11 +733,11 @@ class ImportarXMLLineConsolidado(models.TransientModel):
     _description = 'Detalle local'
 
     wizard_id = fields.Many2one(comodel_name='l10n_ec_account_edi.wimpxml', string=u'Principal', store=True)
+    account_id = fields.Many2one('account.account', string=u'Cuenta')
     producto_id = fields.Many2one('product.product', string=u'Servicio')
     tax_ids = fields.Many2many('account.tax', string='Impuestos')
     subtotal = fields.Float(string=u"Base Imponible")
-    valor = fields.Float(string=u"Impuesto")
-    
+    valor = fields.Float(string=u"Impuesto")    
     
     
 class ImportarXMLLineAdicional(models.TransientModel):

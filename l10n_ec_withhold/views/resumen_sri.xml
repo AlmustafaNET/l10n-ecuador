@@ -1,0 +1,14 @@
+<odoo>
+
+	<record model="ir.ui.view" id="resumen_sri_mes_form">
+		<field name="name">resumen_sri_mes_form</field>
+		<field name="model">l10n_ec_account_edi.resumen.sri.mes</field>
+		<field name="inherit_id" ref="l10n_ec_account_edi.resumen_sri_mes_form" />
+		<field name="arch" type="xml">
+			<xpath expr="//button[@name='action_comprobar_existencia']" position="after">
+				<button name="action_procesar_retenciones" type="object" string="Procesar todas las retenciones" icon="fa-gear" />
+			</xpath>					
+		</field>
+	</record>	
+	
+</odoo>

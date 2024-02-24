@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_account_group_form" model="ir.actions.act_window">
+        <field name="name">Grupos del Plan Contable</field>
+        <field name="res_model">account.group</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="account.view_account_group_search"/>
+        <field name="view_id" ref="account.view_account_group_tree"/>
+    </record>
+
+    <menuitem 
+        id="menu_action_account_group_form"
+        action="action_account_group_form"
+        parent="account.account_account_menu"
+        groups="account.group_account_readonly" 
+        sequence="0"/>
+</odoo>

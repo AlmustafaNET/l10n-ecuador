@@ -12,33 +12,11 @@
 							<br />
 							Este archivo se lo descarga de la p&#225;gina web del SRI
 							</p>
-						</div>
-						<div class="oe_button_box" name="button_box" invisible="context.get('modo') != 'f'">
-							<button name="action_comprobar_existencia" type="object" string="Comprobar existencia" icon="fa-eye"  />
-							<!-- <button name="action_procesar_retenciones" type="object" string="Procesar todas las retenciones" icon="fa-gear" /> -->
-							<button name="action_revisar_f_previas" type="object" string="Revisar facturas previas" icon="fa-check-square-o" />
-							<button name="action_procesar_seleccionados" type="object" string="Procesar Seleccionados" icon="fa-gears" />	
-						</div>	
+						</div>						
 					</header>
 					<group name="g_init" invisible="context.get('modo') != 'init'">
 						<field name="archivo" widget="One2many_binary"  />
-					</group>	
-					<div name="g_lineas" style="width: 100%" invisible="context.get('modo') != 'f'">
-						<field name="lineas" invisible="context.get('modo','') != 'f'">
-							<tree string="Detalle" default_order="estado, fecha desc" delete="false" create="false" editable="bottom" multi_edit="1" decoration-primary="estado != '-'" decoration-success="estado == 'F.PREVIA'" limit="100">
-								<field name="sel" />
-								<field name="fecha" readonly="1" />
-								<field name="ruc" readonly="1" />
-								<field name="emisor" readonly="1" />
-								<field name="tipo" readonly="1" />
-								<field name="numero" readonly="1" />
-								<field name="total" readonly="1" />									
-								<field name="estado" readonly="1" />
-								<button name="action_procesar" type="object" help="Descargar documento y procesarlo" icon="fa-gear" >										
-								</button>
-							</tree>
-						</field>
-					</div>		
+					</group>							
 					<footer>
 						<button name="action_procesar_archivo" type="object" string="LEER" class="oe_highlight" invisible="context.get('modo') != 'init'" />
 					</footer>
@@ -48,7 +26,7 @@
 	</record>	
 	
     <record id="launch_wizard_importar_csv" model="ir.actions.act_window">
-        <field name="name">Importar TXT (Varios)</field>
+        <field name="name">Importar Resumen del SRI (TXT)</field>
         <field name="res_model">l10n_ec_account_edi.wizard.impcsv</field>
         <field name="context">{'modo': 'init'}</field>
         <field name="view_mode">form</field>
@@ -56,7 +34,6 @@
     </record>
 	        
 		
-	<menuitem id="menu_wizard_importarcsv" name="Importar TXT" parent="l10n_ec.sri_menu" sequence="20" action="launch_wizard_importar_csv" />	
-
-        
+	<menuitem id="menu_wizard_importarcsv" parent="l10n_ec.sri_menu" sequence="20" action="launch_wizard_importar_csv" />	
+	        
 </odoo>

@@ -154,7 +154,7 @@ class ImportarXML(models.TransientModel):
         #Revisar si la factura relacionada existe
         num_factura = "%s-%s-%s" % (num_factura[0:3], num_factura[3:6], num_factura[6:])
 
-        fact = self.env['account.move'].search([('l10n_latam_document_number', '=', num_factura), ('move_type', '=', 'out_invoice'), ('state', '=', 'posted')], limit=1)
+        fact = self.env['account.move'].search([('name', 'like', num_factura), ('move_type', '=', 'out_invoice'), ('state', '=', 'posted')], limit=1)
         if not fact:
             raise ValidationError(f"No se encontró el Documento de Sustento : {num_factura}")
 
@@ -173,12 +173,12 @@ class ImportarXML(models.TransientModel):
             "journal_id": journal.id,
             "number": origen['numero'],
             "date": fecha,
+            "invoice_id": fact.id,
             "authorization": numero_autorizacion,
             "invoice_number": num_factura,
             "total_withhold": subtotal_renta + subtotal_iva,
             "lines": withhold_lines,
         }
-
 
         new_retencion = self.env["account.move"].create_withhold(withhold_vals)
               

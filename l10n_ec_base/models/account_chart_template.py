@@ -14,6 +14,11 @@ class AccountChartTemplate(models.AbstractModel):
         if company.country_id.code == "EC":
             # set SRI payment for records exist
             self._l10n_ec_set_default_sri_payment(company)
+            
+            # Forzar la carga de los impuestos y grupos de impuestos
+            Template = self.with_company(company)  
+            Template._load_data({"account.tax": TAX_DATA_EC})
+            Template._load_data({"account.tax.group": TAX_GROUP_DATA_EC})
         return res
 
     @api.model
@@ -28,11 +33,14 @@ class AccountChartTemplate(models.AbstractModel):
         for company in all_companies:
             # set SRI payment for records exist
             self._l10n_ec_set_default_sri_payment(company)
-            Template = self.with_company(company)
+            Template = self.with_company(company)    
             Template._load_data({"account.tax": self._get_ec_new_account_tax()})
             Template._load_data({"account.tax": TAX_DATA_EC})
             Template._load_data({"account.tax.group": TAX_GROUP_DATA_EC})
             Template._load_data({"account.journal": self._get_ec_new_account_journal()})
+            Template._load_data({"account.group": self._get_ec_new_account_group()})
+            Template._load_data({"account.account": self._get_ec_new_account_account()})
+                    
         return True
 
     def _l10n_ec_set_default_sri_payment(self, company):
@@ -64,7 +72,15 @@ class AccountChartTemplate(models.AbstractModel):
     @template("ec", "account.journal")
     def _get_ec_new_account_journal(self):
         return self._parse_csv("ec", "account.journal", module="l10n_ec_base")
-
+    
+    @template("ec", "account.group")
+    def _get_ec_new_account_group(self):
+        return self._parse_csv("ec", "account.group", module="l10n_ec_base")
+    
+    @template("ec", "account.account")
+    def _get_ec_new_account_account(self):
+        return self._parse_csv("ec", "account.account", module="l10n_ec_base")
+    
     @template("ec", "account.tax")
     def _get_ec_update_account_tax_data(self):
         """

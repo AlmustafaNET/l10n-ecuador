@@ -105,6 +105,7 @@ class AccountMove(models.Model):
                 [
                     ("partner_id", "=", move.partner_id.id),
                     ("ref", "=", move.ref),
+                    ("state", "=", "posted"),
                     ("l10n_ec_withholding_type", "=", "sale"),
                 ]
             )
@@ -343,7 +344,7 @@ class AccountMove(models.Model):
     def validations_withhold(self, invoice, vals):
         if vals["tipo"] == "sale":
             # Validate len of number authorization
-            if len(vals["authorization"]) not in [10, 49]:
+            if len(vals["authorization"]) not in [10, 49, 37]: #37 es de las antiguas autorizaciones
                 raise UserError(
                     _("Authorization is not valid. Should be length equal to 10 or 49")
                 )
@@ -434,7 +435,7 @@ class AccountMove(models.Model):
         if not invoice_id:
             invoice = self.search(
                 [
-                    ("l10n_latam_document_number", "=", vals["invoice_number"]),
+                    ("name", "like", vals["invoice_number"]),
                     ("move_type", "=", "out_invoice"),
                 ],
                 limit=1,

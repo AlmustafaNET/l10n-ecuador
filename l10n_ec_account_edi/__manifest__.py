@@ -32,6 +32,7 @@
         "views/account_move_view.xml",
         "views/res_config_settings_view.xml",
         "views/account_edi_document_view.xml",
+        "views/resumen_sri.xml",
         "wizard/account_move_reversal_view.xml",
         "wizard/w_xml_import.xml",
         "wizard/w_csv_import.xml",

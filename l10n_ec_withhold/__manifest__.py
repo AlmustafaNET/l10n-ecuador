@@ -12,6 +12,7 @@
         "security/ir.model.access.csv",
         "data/edi_withhold.xml",
         "wizard/wizard_create_withhold_view.xml",
+        "views/resumen_sri.xml",
         "views/res_partner_view.xml",
         "views/account_journal_view.xml",
         "views/account_move_view.xml",

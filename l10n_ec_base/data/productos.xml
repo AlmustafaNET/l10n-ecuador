@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">    
+
+        <record id="producto_gasto" model="product.template">
+            <field name="name">Gasto</field>
+            <field name="active" eval="True" />
+            <field name="purchase_ok" eval="True" />
+            <field name="sale_ok" eval="False" />
+            <field name="categ_id" ref="product.cat_expense"/>
+            <field name="detailed_type">service</field>
+            <field name="property_account_expense_id" search="[('code', '=', '52040203')]"/>
+            <field name="image_1920" type="base64" file="l10n_ec_base/static/img/gasto.png"/>
+        </record>
+
+    </data>
+    
+</odoo>

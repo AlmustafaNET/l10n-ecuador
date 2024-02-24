@@ -29,4 +29,18 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="l10n_ec_final_consumer_limit",
         default=50.0,
         readonly=False,
+    )    
+    l10n_ec_sri_auto_post = fields.Boolean(
+        string="Publicar Automáticamente Facturas SRI",
+        help="Si está marcado, las facturas se publicarán automáticamente al usar la opción 'Porcesar Seleccionados' en el Resumen del SRI.",
+        config_parameter="l10n_ec_sri_auto_post",
+        default=True,
+        readonly=False,
+    )
+    l10n_ec_sri_auto_payment = fields.Boolean(
+        string="Pagar Automáticamente Facturas SRI",
+        help="Si está marcado, las facturas se pagaran automáticamente al usar la opción 'Porcesar Seleccionados' en el Resumen del SRI.",
+        config_parameter="l10n_ec_sri_auto_payment",
+        default=True,
+        readonly=False,
     )

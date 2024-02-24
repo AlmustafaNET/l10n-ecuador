@@ -40,6 +40,41 @@
                     </div>
                     <div
                         class="col-12 col-lg-6 o_setting_box"
+                        title="Al 'Procesar Seleccionadas' en el resumen del SRI"
+                    >
+                        <span class="o_form_label" >Al 'Procesar Seleccionadas' en el resumen del SRI</span>
+                        <div class="o_setting_left_pane" />
+                        <div class="o_setting_right_pane">                            
+                            <div class="content-group">
+                                <div class="row">
+                                    <label
+                                        for="l10n_ec_sri_auto_post"
+                                        string="Publicar Automáticamente Facturas SRI"
+                                        class="col-lg-4 o_light_label"
+                                    />
+                                    <field
+                                        name="l10n_ec_sri_auto_post"
+                                    />
+                                </div>
+                            </div>
+                            <div class="content-group">
+                                <div class="row">
+                                    <label
+                                        for="l10n_ec_sri_auto_payment"
+                                        string="Pagar Automáticamente Facturas SRI"
+                                        class="col-lg-4 o_light_label"
+                                    />
+                                    <field
+                                        name="l10n_ec_sri_auto_payment"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div
+                        class="col-12 col-lg-6 o_setting_box"
                         title="Electronic Certificate File"
                     >
                         <div class="o_setting_left_pane" />

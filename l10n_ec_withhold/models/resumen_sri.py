@@ -14,34 +14,33 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-class DetalleCSV(models.TransientModel):
-    _inherit = 'l10n_ec_account_edi.wizard.impcsv'
+class ResumenSRIMes(models.Model):
+    _inherit = 'l10n_ec_account_edi.resumen.sri.mes'                
 
-    def procesar_retenciones(self):
+    def action_procesar_retenciones(self):
         self.ensure_one()
         _logger.info("Procesar todas las retenciones")
         
-        retenciones = self.lineas.filtered(lambda x: x.tipo == 'Retención' and x.estado=='-')
+        retenciones = self.lineas.filtered(lambda x: x.tipo == 'Retención' and x.estado in ('-', 'PROCESANDO'))
         _logger.info(f"Retenciones encontradas {len(retenciones)}")
         ind = 1
         for r in retenciones:
             _logger.info(f"Retención: {ind}")
             # Descargar del SRI el documento
-            res = r.action_autorizacion()
+            res = r.xml
             if res:
+                res = codecs.decode(res, 'base64')
                 try:
                     r.estado = u"PROCESANDO"
                     o_xml = self.env['l10n_ec_account_edi.wimpxml']
-                    o = o_xml.sudo().create({
-                        'archivo': res
-                    })
+                    o = o_xml.sudo().create({})
 
-                    o.procesar_archivo()
+                    o.action_procesar_archivo(res)
 
                     # Hacer commit de los cambios actuales
                     self.env.cr.commit()
-                except:
-                    _logger.warning("Error al procesar la retención")
+                except Exception as e:
+                    _logger.warning("Error al procesar la retención: " + str(e))
                     pass
                 
             ind += 1

@@ -172,7 +172,7 @@ class AccountMove(models.Model):
     def action_post(self):
         for move in self:
             if move.company_id.account_fiscal_country_id.code == "EC":
-                move._l10n_ec_validate_quantity_move_line()
+                move._l10n_ec_validate_quantity_move_line()        
         return super().action_post()
 
     def _is_l10n_ec_is_purchase_liquidation(self):

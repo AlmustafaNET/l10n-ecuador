@@ -1,0 +1,60 @@
+<odoo>
+
+	<record id="resumen_sri_mes_view_tree" model="ir.ui.view">
+		<field name="name">resumen.sri.mes.view.tree</field>
+		<field name="model">l10n_ec_account_edi.resumen.sri.mes</field>
+		<field name="arch" type="xml">
+			<tree string="Resumen del SRI por Mes">
+				<field name="name" />
+			</tree>
+		</field>
+	</record>
+	<record id="resumen_sri_mes_form" model="ir.ui.view">
+		<field name="name">resumen_sri_mes_form</field>
+		<field name="model">l10n_ec_account_edi.resumen.sri.mes</field>
+		<field name="arch" type="xml">
+			<form string="Resumen del SRI por Mes" create="false">								
+				<sheet>
+					<header>
+						<div class="oe_button_box">
+							<button name="action_traer_xmls" type="object" string="Traer Archivos XML" icon="fa-file-code-o"  />							
+							<button name="action_comprobar_existencia" type="object" string="Comprobar existencia" icon="fa-eye"  />							
+							<button name="action_revisar_f_previas" type="object" string="Revisar facturas previas" icon="fa-check-square-o" />
+							<button name="action_procesar_seleccionados" type="object" string="Procesar Seleccionados" icon="fa-gears" />	
+						</div>	
+					</header>	
+					<group>
+						<group>
+							<field name="name" readonly="1"/>
+						</group>
+						<field name="lineas" >
+							<tree string="Detalle" create="false" delete="false" editable="bottom" multi_edit="1" decoration-info="estado=='YA EXISTE'" decoration-success="estado=='F.PREVIA'" limit="100">
+								<field name="sel" />
+								<field name="fecha" readonly="1" />
+								<field name="ruc" readonly="1" /> 
+								<field name="emisor" readonly="1" />
+								<field name="tipo" readonly="1" />
+								<field name="numero" readonly="1" />
+								<field name="total" readonly="1" />									
+								<field name="xml" readonly="1" />	
+								<field name="estado" readonly="1" />
+								<button name="action_procesar" type="object" help="Descargar documento y procesarlo" icon="fa-gear" >										
+								</button>
+							</tree>
+						</field>
+					</group>
+				</sheet>				
+			</form>
+		</field>
+	</record>		
+
+	<record id="action_resumen_sri" model="ir.actions.act_window">
+        <field name="name">Resumen del SRI por Mes</field>
+        <field name="res_model">l10n_ec_account_edi.resumen.sri.mes</field>
+        <field name="view_mode">tree,form</field>
+    </record>		
+	
+	<menuitem id="menu_resumen_sri" parent="l10n_ec.sri_menu" sequence="30" action="action_resumen_sri" />	
+
+        
+</odoo>
