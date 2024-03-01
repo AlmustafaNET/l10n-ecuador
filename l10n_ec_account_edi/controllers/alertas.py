@@ -12,7 +12,7 @@ class OnboardingController(http.Controller):
     def get_l10n_ec_account_edi_onboarding_data(self, route_name=None, context=None):
         """Mensaje de Alerta si la firma electrónica esta por caducarse"""
 
-        firma = request.env.company.l10n_ec_key_type_id
+        firma = request.env.sudo().company.l10n_ec_key_type_id
         if not firma:
             return onboarding.OnboardingController.get_onboarding_data(
                 self, route_name, context

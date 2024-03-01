@@ -10,6 +10,21 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+cte_meses = {
+    1: 'Enero',
+    2: 'Febrero',
+    3: 'Marzo',
+    4: 'Abril',
+    5: 'Mayo',
+    6: 'Junio',
+    7: 'Julio',
+    8: 'Agosto',
+    9: 'Septiembre',
+    10: 'Octubre',
+    11: 'Noviembre',
+    12: 'Diciembre',
+}
+
 
 class DetalleCSV(models.TransientModel):
     _name = 'l10n_ec_account_edi.wizard.impcsv'
@@ -107,7 +122,7 @@ class DetalleCSV(models.TransientModel):
                             'total': float(valor),
                             'estado': '-',
                         }
-                        resumen_mes = f"SRI Mes: {fecha.strftime('%B %Y')}"
+                        resumen_mes = f"SRI Mes: {cte_meses[fecha.month]} {fecha.year}"
                         resumen = m_reumen.search([('name', '=', resumen_mes)], limit=1)
                         if not resumen:
                             resumen = m_reumen.create({'name': resumen_mes})

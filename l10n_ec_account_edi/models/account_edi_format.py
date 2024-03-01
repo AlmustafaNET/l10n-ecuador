@@ -184,7 +184,7 @@ class AccountEdiFormat(models.Model):
                     company.display_name,
                 )
             )
-        if not company.l10n_ec_key_type_id:
+        if not company.sudo().l10n_ec_key_type_id:
             errors.append(
                 _(
                     "You must set Electronic Certificate File into company: %s",
@@ -234,7 +234,7 @@ class AccountEdiFormat(models.Model):
                     xml_file = edi_doc._l10n_ec_render_xml_edi()
                     _logger.debug(xml_file)
                     edi_doc._l10n_ec_action_check_xsd(xml_file)
-                    xml_signed = company.l10n_ec_key_type_id.action_sign(xml_file)
+                    xml_signed = company.sudo().l10n_ec_key_type_id.action_sign(xml_file)
                     if not attachment:
                         attachment = self.env["ir.attachment"].create(
                             {
